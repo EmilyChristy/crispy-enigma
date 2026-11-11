@@ -1,0 +1,16 @@
+{
+  "name": "crispy-enigma",
+  "version": "1.0.0",
+  "description": "Neon Relay — a cooperative browser arcade game for 1–10 players",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "check": "node --check server.js && node --check game.js && node --check public/app.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "ISC"
+}

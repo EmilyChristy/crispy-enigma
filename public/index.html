@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11131f">
+  <meta name="description" content="A neon-soaked cooperative arcade escape. Collect sparks, remix drones, and clear five circuits with 1–10 friends.">
+  <title>Neon Relay — A little nostalgia. A lot of neon.</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Neon Relay home"><span class="brand-icon">✳</span><span>NEON<span class="brand-light">RELAY</span><small>THE AFTER-HOURS ARCADE</small></span></a>
+    <div class="header-right"><span class="edition">CO-OP ARCADE · VOL. 01</span><button id="sound" class="button subtle" type="button" aria-pressed="false">♫ Sound off</button></div>
+  </header>
+
+  <main>
+    <section class="intro" id="intro">
+      <div><p class="eyebrow"><span class="tiny-star">✦</span> LESS SCROLLING. MORE HIGH SCORES.</p><h1>A little nostalgia.<br>A lot of <em>neon.</em></h1><p class="intro-copy">A five-level escape for you and your favourite people.<br>Chase the sparks. Dodge the drones. Turn the tables.</p></div>
+      <div class="session-note"><span class="orbit">↗</span><p>Got ten minutes?<br><strong>Make them electric.</strong></p><span class="hand-line"></span></div>
+    </section>
+
+    <div class="arcade-layout">
+      <aside class="control-column">
+        <section class="panel setup" id="setup">
+          <div class="section-label"><span>01 / CHECK IN</span><span class="small-tag">1–10 PLAYERS</span></div>
+          <h2>Hey, player.</h2><p class="muted">Every great run starts with a name.</p>
+          <form id="pilot-form">
+            <label for="name">YOUR CALLSIGN</label>
+            <input id="name" name="name" maxlength="18" placeholder="e.g. Cosmic Cherry" required autocomplete="nickname">
+            <label id="avatar-label">PICK YOUR PIXEL PERSONALITY</label>
+            <div class="avatars" role="group" aria-labelledby="avatar-label">
+              <button type="button" class="avatar selected" data-avatar="✦" aria-label="Star avatar" aria-pressed="true">✦</button>
+              <button type="button" class="avatar" data-avatar="⚡" aria-label="Lightning avatar" aria-pressed="false">⚡</button>
+              <button type="button" class="avatar" data-avatar="🌙" aria-label="Moon avatar" aria-pressed="false">🌙</button>
+              <button type="button" class="avatar" data-avatar="🍒" aria-label="Cherry avatar" aria-pressed="false">🍒</button>
+              <button type="button" class="avatar" data-avatar="🪐" aria-label="Planet avatar" aria-pressed="false">🪐</button>
+              <button type="button" class="avatar" data-avatar="👾" aria-label="Alien avatar" aria-pressed="false">👾</button>
+              <button type="button" class="avatar" data-avatar="🐱" aria-label="Cat avatar" aria-pressed="false">🐱</button>
+              <button type="button" class="avatar" data-avatar="🌈" aria-label="Rainbow avatar" aria-pressed="false">🌈</button>
+            </div>
+            <label class="photo-upload" for="photo"><span id="photo-label">↥ Or use your own photo</span><input id="photo" type="file" accept="image/png,image/jpeg,image/webp"><span class="optional">OPTIONAL</span></label>
+            <button type="submit" class="button primary wide" id="solo">Let’s play solo <span>↗</span></button>
+            <button type="button" class="button secondary wide" id="create">Start a party <span>＋</span></button>
+            <div class="join-divider"><span>ALREADY HAVE A CREW?</span></div>
+            <div class="join-row"><input id="room-code" aria-label="Six-character room code" placeholder="ROOM CODE" maxlength="6" autocomplete="off" spellcheck="false"><button type="button" id="join" class="button secondary">Join →</button></div>
+          </form>
+          <p class="privacy">No account. No downloads. Just one more go.<br>Photos stay on this game server for your session.</p>
+        </section>
+
+        <section class="panel room-panel" id="room-panel" hidden>
+          <div class="section-label"><span>YOUR FLIGHT CREW</span><span id="connection" class="small-tag">CONNECTING</span></div>
+          <h2 id="room-title">Better together.</h2>
+          <p class="muted">Share this code with your crew before starting.</p>
+          <button class="room-code-button" id="copy-code" title="Copy room code"><span id="code-display"></span><small id="copy-label">COPY CODE ↗</small></button>
+          <p class="room-hint">Open this same server address on each device, then enter the code. Up to 10 pilots.</p>
+          <ul id="players" class="players" aria-label="Players in room"></ul>
+          <button id="start" class="button primary wide">Start the run <span>↗</span></button>
+          <button id="pause" class="button secondary wide" hidden>Pause run <span>Ⅱ</span></button>
+          <button id="lobby" class="button secondary wide" hidden>Back to lobby</button>
+          <p id="host-note" class="muted room-hint"></p>
+          <button id="leave" class="text-button">← Leave room</button>
+        </section>
+
+        <section class="quick-tip"><span class="tip-icon">⚡</span><div><h3>The tables? Turned.</h3><p>Grab a power core to trigger <strong>Overdrive</strong>. For 8 seconds, the hunters become the hunted. Your whole crew gets the boost.</p></div></section>
+      </aside>
+
+      <section class="arcade-column" aria-label="Arcade game">
+        <div class="machine">
+          <div class="machine-top"><div><span class="live-dot"></span><span id="stage-label">ATTRACT MODE</span></div><span id="level-label">01 / MIDNIGHT MARKET</span></div>
+          <div class="hud">
+            <div><span>CREW SCORE</span><strong id="score">000000</strong></div>
+            <div class="hud-center"><span id="timer-label">TIME PER LEVEL</span><strong id="timer">02:00</strong></div>
+            <div class="hud-right"><span>CIRCUIT</span><strong><span id="level-number">01</span><span class="hud-dim"> / 05</span></strong></div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas id="game" width="920" height="680" tabindex="0" aria-label="Game maze. Use arrow keys or W A S D to move. Collect all sparks and power cores, and avoid drones."></canvas>
+            <div id="overlay" class="game-overlay"><div class="overlay-icon" id="overlay-icon">✳</div><p class="eyebrow" id="overlay-kicker">WELCOME TO THE NIGHT SHIFT</p><h2 id="overlay-title">Small sparks.<br>Big adventures.</h2><p id="overlay-copy">Your next high score is a click away.</p><span class="overlay-tag" id="overlay-tag">READY WHEN YOU ARE</span></div>
+            <div id="overdrive" class="overdrive-banner" hidden>⚡ OVERDRIVE <span id="overdrive-time"></span></div>
+          </div>
+          <div class="machine-bottom"><span id="sparks-left">✦ COLLECT EVERY SPARK TO ADVANCE</span><span id="hearts">♡ ♡ ♡</span></div>
+        </div>
+        <div class="below-machine"><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>or</span><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd><span>to move</span></p><span>ESC TO PAUSE <span class="separator">/</span> GOOD VIBES ONLY</span></div>
+        <div class="touch-controls" aria-label="Touch movement controls"><button data-direction="up" aria-label="Move up">↑</button><div><button data-direction="left" aria-label="Move left">←</button><button data-direction="down" aria-label="Move down">↓</button><button data-direction="right" aria-label="Move right">→</button></div></div>
+        <p id="announcement" class="announcement" role="status" aria-live="polite">A familiar feeling. An entirely new adventure.</p>
+      </section>
+    </div>
+
+    <section class="how-to" aria-label="How to play">
+      <div class="how-title"><span class="eyebrow">THE SHORT VERSION</span><h2>Old-school soul.<br>New favourite ritual.</h2></div>
+      <article><span class="step-number mint">01</span><h3>Follow the sparks.</h3><p>Sweep up every spark and power core to open the next circuit. Five levels. Two minutes on each clock.</p></article>
+      <article><span class="step-number pink">02</span><h3>Flip the script.</h3><p>Dodge the drones, then grab a glowing core. Overdrive lets the entire crew remix drones for bonus points.</p></article>
+      <article><span class="step-number lavender">03</span><h3>Keep the relay alive.</h3><p>Split up with friends. Share the score. Clear a circuit for a fresh clock and a heart, even for fallen teammates.</p></article>
+    </section>
+    <p id="error" class="error-toast" role="alert" hidden></p>
+  </main>
+  <footer><span class="footer-brand">✳ NEON RELAY</span><span>INSPIRED BY THE ARCADE. MADE FOR YOUR CREW.</span><span>TAKE A BREAK. COME BACK GLOWING. ↗</span></footer>
+</body>
+</html>
