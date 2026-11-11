@@ -138,7 +138,7 @@ export function createApp() {
       const player = room.game.players.find(p => p.id === session.id);
       if (url.pathname === '/api/input') {
         if (Number.isSafeInteger(data.sequence) && data.sequence > session.inputSequence) {
-          player.direction = Object.hasOwn(DIRECTIONS, data.direction) ? data.direction : null;
+          player.direction = room.game.status === 'playing' && Object.hasOwn(DIRECTIONS, data.direction) ? data.direction : null;
           session.inputSequence = data.sequence;
         }
       } else if (url.pathname === '/api/action') {
@@ -148,7 +148,10 @@ export function createApp() {
         }
         if (room.host !== session.id) { send(res, 403, { error: 'Only the host can control the run.' }); return; }
         if (data.action === 'start' && ['lobby', 'won', 'gameover'].includes(room.game.status)) startGame(room.game);
-        else if (data.action === 'pause' && room.game.status === 'playing') room.game.status = 'paused';
+        else if (data.action === 'pause' && room.game.status === 'playing') {
+          room.game.status = 'paused';
+          for (const pilot of room.game.players) pilot.direction = null;
+        }
         else if (data.action === 'pause' && room.game.status === 'paused') room.game.status = 'playing';
         else if (data.action === 'lobby' && ['won', 'gameover'].includes(room.game.status)) {
           room.game = { ...createGame(), players: room.game.players };

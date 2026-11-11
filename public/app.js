@@ -248,7 +248,7 @@ function updateUI() {
   $('hearts').textContent = me ? '♥'.repeat(me.lives) + '♡'.repeat(3 - me.lives) : '';
   $('overdrive').hidden = !game.overdrive || game.status !== 'playing' || game.transition > 0;
   $('overdrive-time').textContent = ` ${Math.ceil(game.overdrive / 1000)}s`;
-  const signature = JSON.stringify(game.players.map(p => [p.id, p.lives, p.score, p.connected]).concat([game.host]));
+  const signature = JSON.stringify(game.players.map(p => [p.id, p.lives, p.score, p.connected]).concat([game.host, game.status]));
   if (signature !== rosterSignature) {
     rosterSignature = signature;
     $('players').replaceChildren(...game.players.map(player => {
@@ -299,6 +299,13 @@ function connect() {
       showError('You left the room. Create or join a new one.');
       return;
     }
+    const previousMe = game?.players.find(p => p.id === session?.id);
+    const nextMe = next.players.find(p => p.id === session?.id);
+    if (game?.status !== next.status || game?.level !== next.level ||
+        next.transition > (game?.transition || 0) || nextMe?.lives < previousMe?.lives) {
+      lastDirection = null;
+      held.length = 0;
+    }
     if (game && next.overdrive > game.overdrive) audio.tone(880, 0.25, 'triangle', 0.6);
     if (game && next.level > game.level) audio.tone(1046.5, 0.6, 'triangle', 0.5);
     game = next;
@@ -307,6 +314,11 @@ function connect() {
     updateUI();
   };
   events.onerror = () => {
+    if (events.readyState === EventSource.CLOSED) {
+      reset();
+      showError('That session has ended. Create or join a room for another run.');
+      return;
+    }
     connected = false;
     lastDirection = null;
     $('connection').textContent = 'RECONNECTING';
@@ -372,10 +384,15 @@ function reset() {
 }
 
 async function action(name) {
+  if (name === 'leave') {
+    const departure = api('action', { action: name });
+    reset();
+    await departure.catch(() => {});
+    return;
+  }
   try {
     await api('action', { action: name });
-    if (name === 'leave') reset();
-    else canvas.focus({ preventScroll: true });
+    canvas.focus({ preventScroll: true });
   } catch (error) { showError(error.message); }
 }
 $('pilot-form').addEventListener('submit', event => { event.preventDefault(); join('solo'); });
@@ -440,7 +457,7 @@ function move(direction) {
   api('input', { direction, sequence: ++inputSequence }).catch(() => { lastDirection = null; });
 }
 document.addEventListener('keydown', event => {
-  if (!session || ['INPUT', 'TEXTAREA', 'BUTTON'].includes(event.target.tagName) || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (!session || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName) || event.ctrlKey || event.metaKey || event.altKey) return;
   if (event.key === 'Escape' && game?.host === session.id && ['playing', 'paused'].includes(game.status)) {
     event.preventDefault();
     if (!event.repeat) action('pause');

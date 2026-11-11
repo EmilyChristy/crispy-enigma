@@ -71,8 +71,15 @@ test('ten players share a room, with capacity, authentication, and host-only con
   const started = await nextState(state => state.status === 'playing');
   assert.equal(started.level, 0);
   assert.ok(started.sparks.length > 100);
+  assert.equal((await post('input', { ...host, direction: 'down', sequence: 2 })).status, 200);
+  assert.equal((await post('input', { ...host, direction: 'up', sequence: 1 })).status, 200);
+  const moving = await nextState(state => state.players[0].direction === 'down');
+  assert.equal(moving.players[0].direction, 'down');
   assert.equal((await post('action', { ...host, action: 'pause' })).status, 200);
-  assert.equal((await nextState(state => state.status === 'paused')).status, 'paused');
+  const paused = await nextState(state => state.status === 'paused');
+  assert.ok(paused.players.every(player => player.direction === null));
+  assert.equal((await post('input', { ...host, direction: 'right', sequence: 3 })).status, 200);
+  assert.equal((await nextState(state => state.status === 'paused')).players[0].direction, null);
   assert.equal((await post('action', { ...host, action: 'leave' })).status, 200);
   assert.equal((await post('action', { ...guest, action: 'pause' })).status, 200);
   assert.equal((await post('join', { name: 'Late', code: guest.code })).status, 409);
