@@ -1,15 +1,12 @@
-import { makeMaze } from '/game.js';
+import { createGame, addPlayer, startGame } from '/game.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('game');
 const ctx = canvas.getContext('2d');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const preview = {
-  grid: makeMaze(17), sparks: [], powers: ['21,1', '1,15', '21,15', '11,7'],
-  players: [{ id: 'preview', x: 1, y: 1, color: '#b6f5ce', avatar: '✦', lives: 3, shield: 0 }],
-  ghosts: [{ x: 17, y: 11, rest: 0 }, { x: 9, y: 5, rest: 0 }], overdrive: 0,
-};
-preview.grid.forEach((row, y) => row.forEach((cell, x) => { if (!cell) preview.sparks.push(`${x},${y}`); }));
+const preview = createGame();
+addPlayer(preview, 'preview', 'Pilot', '✦');
+startGame(preview);
 let game = null;
 let session = null;
 let events = null;
@@ -123,13 +120,30 @@ function render(time = 0) {
       ctx.stroke();
     }
   }
-  ctx.fillStyle = '#e6dcb4';
-  for (const point of state.sparks) {
-    const [x, y] = point.split(',').map(Number);
-    ctx.beginPath();
-    ctx.arc(x * TILE + 20, y * TILE + 20, 2.8, 0, Math.PI * 2);
+  function marker(point, text, color, filled = false) {
+    ctx.fillStyle = filled ? color : '#151a2b';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    roundedRect(point.x * TILE + 3, point.y * TILE + 3, 34, 34, 5);
     ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = filled ? '#11131f' : color;
+    ctx.font = 'bold 15px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, point.x * TILE + 20, point.y * TILE + 21);
   }
+  const ready = state === preview ? false : game.exitOpen;
+  marker(state.exit, ready ? 'OUT' : '×', ready ? '#b6f5ce' : '#85899d', ready);
+  if (state.cells.length) marker(state.hub, 'H', '#b6f5ce');
+  state.sockets.forEach(socket => marker(socket, '+', '#b6f5ce'));
+  state.crates.forEach(crate => marker(crate, 'B', '#ffc773',
+    state.sockets.some(socket => socket.x === crate.x && socket.y === crate.y)));
+  state.switches.forEach((pad, index) => {
+    const done = state.sequence.slice(0, state.progress).includes(index);
+    marker(pad, String(index + 1), done ? '#b6f5ce' : '#bbb0f7', done);
+  });
+  state.cells.filter(cell => !cell.carrier && !cell.delivered).forEach(cell => marker(cell, 'E', '#ffc773', true));
   const pulse = reducedMotion ? 1 : 1 + Math.sin(time / 230) * 0.13;
   for (const point of state.powers) {
     const [x, y] = point.split(',').map(Number);
@@ -148,15 +162,15 @@ function render(time = 0) {
     const y = ghost.y * TILE + 20 + (reducedMotion ? 0 : Math.sin(time / 210 + i) * 2);
     ctx.globalAlpha = ghost.rest > 0 ? 0.3 : 1;
     ctx.fillStyle = state.overdrive > 0 ? '#b6f5ce' : ghostColors[i];
-    ctx.beginPath();
-    ctx.arc(x, y - 2, 13, Math.PI, 0);
-    ctx.lineTo(x + 13, y + 13);
-    ctx.lineTo(x + 6, y + 8);
-    ctx.lineTo(x, y + 13);
-    ctx.lineTo(x - 6, y + 8);
-    ctx.lineTo(x - 13, y + 13);
-    ctx.closePath();
+    roundedRect(x - 13, y - 10, 26, 20, 4);
     ctx.fill();
+    ctx.strokeStyle = ctx.fillStyle;
+    ctx.beginPath();
+    ctx.moveTo(x - 20, y - 14);
+    ctx.lineTo(x - 20, y + 14);
+    ctx.moveTo(x + 20, y - 14);
+    ctx.lineTo(x + 20, y + 14);
+    ctx.stroke();
     ctx.fillStyle = '#16152a';
     ctx.fillRect(x - 7, y - 3, 4, 6);
     ctx.fillRect(x + 3, y - 3, 4, 6);
@@ -205,6 +219,7 @@ function render(time = 0) {
       ctx.fillText(player.avatar, x, y + 1);
     }
     ctx.restore();
+    if (state.cells.some(cell => cell.carrier === player.id)) marker({ x: player.x, y: player.y - 0.7 }, 'E', '#ffc773');
     if (player.id === session?.id) {
       ctx.fillStyle = '#fff';
       ctx.beginPath();
@@ -234,6 +249,7 @@ function updateUI() {
   $('pause').hidden = !host || !playing;
   $('pause').textContent = game.status === 'paused' ? 'Resume run ▷' : 'Pause run Ⅱ';
   $('lobby').hidden = !host || !ended;
+  $('rewind').hidden = !host || game.status !== 'playing' || game.mode === 'courier' || game.transition > 0;
   $('host-note').textContent = host ? 'You’re the host. You control the start and pause buttons.' :
     'Your host controls the run. Get ready to make some sparks.';
   $('score').textContent = String(game.score).padStart(6, '0');
@@ -243,7 +259,17 @@ function updateUI() {
   $('level-number').textContent = String(game.level + 1).padStart(2, '0');
   $('stage-label').textContent = game.status === 'lobby' ? 'CREW ASSEMBLING' : game.status === 'paused' ? 'TAKING A BREATHER' : 'LIVE CIRCUIT';
   $('level-label').textContent = `${String(game.level + 1).padStart(2, '0')} / ${game.levelName.toUpperCase()}`;
-  $('sparks-left').textContent = `✦ ${game.sparks.length + game.powers.length} SPARKS & CORES LEFT`;
+  const objectives = [];
+  if (game.cells.length) objectives.push(`DELIVERIES ${game.delivered}/${game.cells.length}`);
+  if (game.sequence.length) objectives.push(`SIGNAL ${game.progress}/${game.sequence.length}`);
+  if (game.sockets.length) objectives.push(`SOCKETS ${game.sockets.filter(socket =>
+    game.crates.some(crate => crate.x === socket.x && crate.y === socket.y)).length}/${game.sockets.length}`);
+  $('sparks-left').textContent = game.exitOpen ? '↗ EXIT OPEN — REACH OUT' : objectives.join(' · ') || 'CHOOSE YOUR CREW';
+  $('mission').hidden = game.status === 'lobby';
+  $('mission-title').textContent = `${game.mode.toUpperCase()} / ${game.levelName}`;
+  $('mission-copy').textContent = game.brief;
+  $('sequence').textContent = game.sequence.length ?
+    `SIGNAL ORDER: ${game.sequence.map((pad, index) => `${index < game.progress ? '✓' : ''}${pad + 1}`).join(' → ')}` : '';
   const me = game.players.find(p => p.id === session?.id);
   $('hearts').textContent = me ? '♥'.repeat(me.lives) + '♡'.repeat(3 - me.lives) : '';
   $('overdrive').hidden = !game.overdrive || game.status !== 'playing' || game.transition > 0;
@@ -365,6 +391,7 @@ function reset() {
   $('setup').hidden = false;
   $('room-panel').hidden = true;
   $('overdrive').hidden = true;
+  $('mission').hidden = true;
   $('overlay').hidden = false;
   $('overlay-icon').textContent = '✳';
   $('overlay-kicker').textContent = 'WELCOME TO THE NIGHT SHIFT';
@@ -376,8 +403,8 @@ function reset() {
   $('timer-label').textContent = 'TIME PER LEVEL';
   $('level-number').textContent = '01';
   $('stage-label').textContent = 'ATTRACT MODE';
-  $('level-label').textContent = '01 / MIDNIGHT MARKET';
-  $('sparks-left').textContent = '✦ COLLECT EVERY SPARK TO ADVANCE';
+  $('level-label').textContent = '01 / MIDNIGHT DELIVERY';
+  $('sparks-left').textContent = 'DELIVER · DECODE · DOCK · ESCAPE';
   $('hearts').textContent = '♡ ♡ ♡';
   lastAnnouncement = '';
   $('announcement').textContent = 'A familiar feeling. An entirely new adventure.';
@@ -401,7 +428,7 @@ $('join').addEventListener('click', () => join('join'));
 $('room-code').addEventListener('keydown', event => {
   if (event.key === 'Enter') { event.preventDefault(); join('join'); }
 });
-for (const name of ['start', 'pause', 'lobby', 'leave']) $(name).addEventListener('click', () => action(name));
+for (const name of ['start', 'pause', 'lobby', 'leave', 'rewind']) $(name).addEventListener('click', () => action(name));
 $('sound').addEventListener('click', async () => {
   try {
     const enabled = await audio.toggle();

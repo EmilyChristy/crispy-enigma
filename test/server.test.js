@@ -70,7 +70,12 @@ test('ten players share a room, with capacity, authentication, and host-only con
   assert.equal((await post('action', { ...host, action: 'start' })).status, 200);
   const started = await nextState(state => state.status === 'playing');
   assert.equal(started.level, 0);
-  assert.ok(started.sparks.length > 100);
+  assert.equal(started.mode, 'courier');
+  assert.equal(started.cells.length, 3);
+  assert.equal(started.exitOpen, false);
+  assert.ok(started.brief.includes('Carry'));
+  assert.equal((await post('action', { ...guest, action: 'rewind' })).status, 403);
+  assert.equal((await post('action', { ...host, action: 'rewind' })).status, 400);
   assert.equal((await post('input', { ...host, direction: 'down', sequence: 2 })).status, 200);
   assert.equal((await post('input', { ...host, direction: 'up', sequence: 1 })).status, 200);
   const moving = await nextState(state => state.players[0].direction === 'down');

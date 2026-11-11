@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#11131f">
-  <meta name="description" content="A neon-soaked cooperative arcade escape. Collect sparks, remix drones, and clear five circuits with 1–10 friends.">
+  <meta name="description" content="A cooperative arcade puzzle adventure. Deliver energy, decode signals, and dock batteries across five circuits with 1–10 friends.">
   <title>Neon Relay — A little nostalgia. A lot of neon.</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2311131f'/%3E%3Ctext x='32' y='49' text-anchor='middle' font-size='51' fill='%23b6f5ce'%3E✳%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="/style.css">
@@ -18,7 +18,7 @@
 
   <main>
     <section class="intro" id="intro">
-      <div><p class="eyebrow"><span class="tiny-star">✦</span> LESS SCROLLING. MORE HIGH SCORES.</p><h1>A little nostalgia.<br>A lot of <em>neon.</em></h1><p class="intro-copy">A five-level escape for you and your favourite people.<br>Chase the sparks. Dodge the drones. Turn the tables.</p></div>
+      <div><p class="eyebrow"><span class="tiny-star">✦</span> LESS SCROLLING. MORE HIGH SCORES.</p><h1>A little nostalgia.<br>A lot of <em>neon.</em></h1><p class="intro-copy">Five circuits. Three ways to outsmart the night.<br>Deliver energy. Decode signals. Bring the city back to life.</p></div>
       <div class="session-note"><span class="orbit">↗</span><p>Got ten minutes?<br><strong>Make them electric.</strong></p><span class="hand-line"></span></div>
     </section>
 
@@ -59,28 +59,33 @@
           <ul id="players" class="players" aria-label="Players in room"></ul>
           <button id="start" class="button primary wide">Start the run <span>↗</span></button>
           <button id="pause" class="button secondary wide" hidden>Pause run <span>Ⅱ</span></button>
+          <button id="rewind" class="button secondary wide" hidden>Reset puzzle (−10 seconds)</button>
           <button id="lobby" class="button secondary wide" hidden>Back to lobby</button>
           <p id="host-note" class="muted room-hint"></p>
           <button id="leave" class="text-button">← Leave room</button>
         </section>
 
-        <section class="quick-tip"><span class="tip-icon">⚡</span><div><h3>The tables? Turned.</h3><p>Grab a power core to trigger <strong>Overdrive</strong>. For 8 seconds, the hunters become the hunted. Your whole crew gets the boost.</p></div></section>
+        <section class="quick-tip"><span class="tip-icon">⚡</span><div><h3>Brains before reflexes.</h3><p>Courier runs have drones and optional <strong>Overdrive</strong> diamonds. Signal and cargo puzzles have no enemies: plan your route, coordinate your crew, and find the exit.</p></div></section>
       </aside>
 
       <section class="arcade-column" aria-label="Arcade game">
+        <section class="panel mission" id="mission" hidden aria-label="Current objective">
+          <h3 id="mission-title"></h3><p id="mission-copy"></p><strong id="sequence"></strong>
+          <p class="legend">E = carryable cell · H = delivery hub · B = pushable battery · + = socket · numbers = signal pads · OUT = exit · ◆ = Overdrive</p>
+        </section>
         <div class="machine">
-          <div class="machine-top"><div><span class="live-dot"></span><span id="stage-label">ATTRACT MODE</span></div><span id="level-label">01 / MIDNIGHT MARKET</span></div>
+          <div class="machine-top"><div><span class="live-dot"></span><span id="stage-label">ATTRACT MODE</span></div><span id="level-label">01 / MIDNIGHT DELIVERY</span></div>
           <div class="hud">
             <div><span>CREW SCORE</span><strong id="score">000000</strong></div>
             <div class="hud-center"><span id="timer-label">TIME PER LEVEL</span><strong id="timer">02:00</strong></div>
             <div class="hud-right"><span>CIRCUIT</span><strong><span id="level-number">01</span><span class="hud-dim"> / 05</span></strong></div>
           </div>
           <div class="canvas-wrap">
-            <canvas id="game" width="920" height="680" tabindex="0" aria-label="Game maze. Use arrow keys or W A S D to move. Collect all sparks and power cores, and avoid drones."></canvas>
+            <canvas id="game" width="920" height="680" tabindex="0" aria-label="Game board. Use arrow keys or W A S D. Follow the current objective: deliver cells, activate pads in order, or push batteries onto sockets, then reach OUT."></canvas>
             <div id="overlay" class="game-overlay"><div class="overlay-icon" id="overlay-icon">✳</div><p class="eyebrow" id="overlay-kicker">WELCOME TO THE NIGHT SHIFT</p><h2 id="overlay-title">Small sparks.<br>Big adventures.</h2><p id="overlay-copy">Your next high score is a click away.</p><span class="overlay-tag" id="overlay-tag">READY WHEN YOU ARE</span></div>
             <div id="overdrive" class="overdrive-banner" hidden>⚡ OVERDRIVE <span id="overdrive-time"></span></div>
           </div>
-          <div class="machine-bottom"><span id="sparks-left">✦ COLLECT EVERY SPARK TO ADVANCE</span><span id="hearts">♡ ♡ ♡</span></div>
+          <div class="machine-bottom"><span id="sparks-left">DELIVER · DECODE · DOCK · ESCAPE</span><span id="hearts">♡ ♡ ♡</span></div>
         </div>
         <div class="below-machine"><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>or</span><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd><span>to move</span></p><span>ESC TO PAUSE <span class="separator">/</span> GOOD VIBES ONLY</span></div>
         <div class="touch-controls" aria-label="Touch movement controls"><button data-direction="up" aria-label="Move up">↑</button><div><button data-direction="left" aria-label="Move left">←</button><button data-direction="down" aria-label="Move down">↓</button><button data-direction="right" aria-label="Move right">→</button></div></div>
@@ -90,9 +95,9 @@
 
     <section class="how-to" aria-label="How to play">
       <div class="how-title"><span class="eyebrow">THE SHORT VERSION</span><h2>Old-school soul.<br>New favourite ritual.</h2></div>
-      <article><span class="step-number mint">01</span><h3>Follow the sparks.</h3><p>Sweep up every spark and power core to open the next circuit. Five levels. Two minutes on each clock.</p></article>
-      <article><span class="step-number pink">02</span><h3>Flip the script.</h3><p>Dodge the drones, then grab a glowing core. Overdrive lets the entire crew remix drones for bonus points.</p></article>
-      <article><span class="step-number lavender">03</span><h3>Keep the relay alive.</h3><p>Split up with friends. Share the score. Clear a circuit for a fresh clock and a heart, even for fallen teammates.</p></article>
+      <article><span class="step-number mint">01</span><h3>Run the delivery.</h3><p>Carry one energy cell at a time through the maze to H. Drones make you drop it; Overdrive buys a safe window. Deliver them all, then reach OUT.</p></article>
+      <article><span class="step-number pink">02</span><h3>Crack the signal.</h3><p>Walk onto numbered pads in the displayed order. A wrong new pad resets progress. Completed pads are safe to cross. No chasing, just route planning.</p></article>
+      <article><span class="step-number lavender">03</span><h3>Power the city.</h3><p>Push B batteries onto + sockets; they lock when docked. Stuck? The host can reset the puzzle for 10 seconds. The finale combines batteries and signals.</p></article>
     </section>
     <p id="error" class="error-toast" role="alert" hidden></p>
   </main>

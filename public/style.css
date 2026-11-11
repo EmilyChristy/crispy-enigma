@@ -52,6 +52,7 @@ input::placeholder{color:#85899d;font-size:12px}
 .quick-tip{display:flex;gap:12px;margin:23px 4px 0}.tip-icon{background:#2c2930;color:#ffd58b;border-radius:50%;font-size:17px;width:32px;height:32px;display:grid;place-items:center;flex-shrink:0}
 h3{font-size:13px;margin:0 0 6px;font-weight:650}.quick-tip p{font-size:11px;color:var(--muted);line-height:1.8;margin:0}.quick-tip strong{color:var(--ink);font-weight:500}
 .machine{border:1px solid #49445f;border-radius:13px;overflow:hidden;background:#151525;box-shadow:0 12px 50px #0003,0 0 50px #ac83ff08}
+.mission{margin-bottom:16px;border-color:#53675d;padding:18px 22px}.mission h3{color:var(--mint);letter-spacing:1px;font-size:12px}.mission p{margin:8px 0;color:var(--ink);font-size:12px}.mission strong{color:var(--pink);letter-spacing:2px}.mission .legend{color:var(--muted);font-size:10px;line-height:1.8}
 .machine-top{height:43px;border-bottom:1px solid #373446;padding:0 20px;display:flex;align-items:center;justify-content:space-between;font-size:8px;letter-spacing:1.4px;color:#c3b9df;background:#222032}
 .machine-top>div{display:flex;align-items:center;gap:7px}.live-dot{height:5px;width:5px;border-radius:50%;background:var(--mint);box-shadow:0 0 7px var(--mint)}
 .hud{display:flex;justify-content:space-between;align-items:center;padding:21px 26px 15px}

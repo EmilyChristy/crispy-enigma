@@ -2,7 +2,7 @@ import http from 'node:http';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { createGame, addPlayer, startGame, tick, snapshot, DIRECTIONS } from './game.js';
+import { createGame, addPlayer, startGame, tick, snapshot, rewindPuzzle, DIRECTIONS } from './game.js';
 
 const publicDir = new URL('./public/', import.meta.url);
 const files = new Map([
@@ -148,6 +148,11 @@ export function createApp() {
         }
         if (room.host !== session.id) { send(res, 403, { error: 'Only the host can control the run.' }); return; }
         if (data.action === 'start' && ['lobby', 'won', 'gameover'].includes(room.game.status)) startGame(room.game);
+        else if (data.action === 'rewind') {
+          if (!rewindPuzzle(room.game)) {
+            send(res, 400, { error: 'Reset is only available during an active puzzle.' }); return;
+          }
+        }
         else if (data.action === 'pause' && room.game.status === 'playing') {
           room.game.status = 'paused';
           for (const pilot of room.game.players) pilot.direction = null;

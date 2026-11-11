@@ -2,8 +2,9 @@
 
 ## Neon Relay
 
-An original, browser-based cooperative arcade game inspired by the chase-and-power-up
-rhythm of 1980s arcades. No accounts, external assets, or runtime dependencies.
+An original, browser-based cooperative arcade puzzle adventure: carry energy through
+mazes, decode signal routes, and push batteries into place to restore a sleeping city.
+No accounts, external assets, or runtime dependencies.
 
 ### Play locally — Windows, WSL, macOS, or Linux
 
@@ -48,19 +49,41 @@ Move with **WASD**, **arrow keys**, or the on-screen directional pad on touch de
 Hold a direction to move; release to stop. A white triangle marks your pilot.
 Press **Escape** to pause/resume if you're the host.
 
-Collect every spark and diamond-shaped power core before the **two-minute level
-timer** runs out. Avoid the drones! A core activates **eight seconds of Overdrive
-for the entire crew**, during which drones can be remixed for escalating
-200/400/600/800-point bonuses. Mint drones are edible; faded drones are temporarily
-inactive. Each pilot starts with three hearts, and has a three-second shield after
-respawning.
+Each circuit has a **two-minute timer**, a visible mission briefing, shared objective
+progress, and an exit marked **OUT** (shown as × until unlocked). Finish the objective,
+then send any living pilot to OUT. Walking every corridor or collecting power-ups
+is **not** required.
 
-There are **five distinct circuits**, with more drones and faster pursuit as you
-advance. Clearing a circuit earns a score bonus, resets the timer, and restores
-one heart (maximum three), bringing eliminated teammates back. Split the maze
-with friends to cover more ground! The run ends when the clock expires or the
-whole crew runs out of hearts. Clear all five to win, then chase a new high score.
-A full run fits roughly ten minutes; keep earning the next circuit to continue.
+| Circuit | Challenge |
+| --- | --- |
+| 1 — Midnight Delivery | Navigate a maze, pick up three **E** energy cells, and deliver each to **H**. Carry only one at a time; each delivery scores 300. |
+| 2 — Signal Garden | Navigate a drone-free maze and enter numbered pads in the displayed order. A wrong unsolved pad resets the sequence; completed pads are safe to cross. |
+| 3 — Battery Workshop | Push three **B** batteries onto **+** sockets in a service-lane puzzle room. Batteries cannot pass through walls or each other, and lock when docked. |
+| 4 — Cross-town Relay | Four maze deliveries with more, faster drones. Split delivery routes with your crew. |
+| 5 — The Neon Heart | A drone-free finale combining battery docking AND a new signal sequence. Complete both to unlock OUT. |
+
+Movement automatically picks up/delivers cells, activates pads on entry, and pushes
+batteries; no additional interaction key is needed. Signal progress and cargo are
+shared, so one pilot can finish what another started. A completed signal scores 600
+once per level. All puzzles are solvable solo: no simultaneous switches or minimum
+crew size. Teammates can overlap and don't obstruct pushes.
+
+On courier circuits, a drone hit drops your carried cell at the collision location
+and costs a heart. A disconnect releases carried cargo at its last position once
+the pilot leaves/expires. Optional diamond cores activate **eight seconds of Overdrive
+for the entire crew**, during which drones can be remixed for escalating
+200/400/600/800-point bonuses. Mint drones are vulnerable; faded drones are temporarily
+inactive. Each pilot starts with three hearts and has a three-second respawn shield.
+
+On signal, cargo, and finale circuits, the host can use **Reset puzzle (−10 seconds)**
+to restore pads, batteries, and pilot positions without restoring hearts or score.
+Use it if a battery becomes stuck against an edge. Docked batteries deliberately
+cannot be pulled back off sockets. Resetting cannot earn another signal score.
+
+Clearing a circuit earns a time-based score bonus, resets the timer, and restores
+one heart (maximum three), reviving eliminated teammates. The run ends when the
+clock expires or the whole crew runs out of hearts. Clear all five to win.
+A full run fits roughly ten minutes; earn the next circuit to continue.
 
 **Sound off/on** toggles an original synthesized chiptune with an Overdrive variation.
 It starts only after you click, never on page load. No copyrighted game art or
@@ -73,7 +96,8 @@ npm run check
 npm test
 ```
 
-- `game.js`: deterministic maze generation, movement, scoring, collisions, five levels.
+- `game.js`: deterministic mazes, courier cargo, signal order, battery pushing,
+  exit conditions, scoring, collisions, and five levels.
 - `server.js`: Node HTTP server, room management, validated commands, authoritative
   simulation, and Server-Sent Events shared state.
 - `public/`: responsive UI, canvas rendering, touch/keyboard controls, avatar processing,
@@ -94,6 +118,7 @@ icon if you'd rather not share a photo.
 
 ### Possible next rounds
 
-Fun additions to build in stages: weekly seeded challenges, optional accessibility
-speed settings, a persistent local leaderboard, and a cooperative “rescue a friend”
-pickup. The current version keeps the core loop and shared five-level run complete.
+Possible next stages: branching courier routes, rotating-mirror signal puzzles,
+weekly seeded challenges, optional accessibility speed settings, and a persistent
+local leaderboard. The current version includes complete courier, signal-order,
+and battery-docking modes rather than a dot-clearing chase loop.
